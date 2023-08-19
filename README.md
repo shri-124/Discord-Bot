@@ -1,1 +1,2 @@
 # Discord-Bot
+Discord bot made using JavaScript and Node.js. Use's Discord's developer tools to create a bot that can perform as the developer wishes. Interacts with Discord's, discord.js, library using Node.js to access it's API to be able to communicate and set permissions with bot. Also uses an additional API from api-ninjas.com via Node.js to allow the bot to express quotes, jokes, and fun facts to the people in the server.
