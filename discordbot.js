@@ -116,12 +116,6 @@ client.on('messageCreate', async msg => {
 })
 
 
-//////////////////////////////////THIS DOES NOT WORK////////////////////////////////////////
-client.on('guildMemberAdd', member => {
-    member.reply(`Welcome to the server ${member.author.username}`)
-})
-
-
 // Log in our bot
 client.login(process.env.DISCORD_BOT_TOKEN);
 
