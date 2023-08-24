@@ -12,7 +12,9 @@ const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBit
 
 const  objectSchema = new mongoose.Schema({
     name: String,
-    list: Array,
+    joke: Array,
+    quote: Array,
+    fact: Array,
     responding: Boolean
 })
 
@@ -24,7 +26,9 @@ function findUser(username) {
 function addUser(username) {
     let userBot = {
         name: username,
-        list: ['one fish two fish', '789'],
+        joke: ['ding dong'],
+        quote: ['helle'],
+        fact: ['hi'],
         responding: true
     }
     botItems.push(userBot)
@@ -75,7 +79,9 @@ function apiResponses(msg, typeStr) {
 let botItems = [
     {
         name: 'Shr_24',
-        list: ['one fish two fish', '789'],
+        joke: ['hehehehe'],
+        quote: [],
+        fact: [],
         responding: true
     }
 ]
