@@ -2,21 +2,21 @@
 require('dotenv').config()
 const request = require('request') // To access api-ninjas
 
-// const mongoose = require('mongoose')
-// const Schema = mongoose.Schema
+// Using mongoose to add Schema into MongoDB
+const mongoose = require('mongoose')
+mongoose.connect(process.env.DATABASE_URI, { useNewUrlParser: true, useUnifiedTopology: true });
 
-//mongoose.connect('mongodb://localhost:27017/admin', { useNewUrlParser: true, useUnifiedTopology: true });
 // Discord.js versions ^14.13 require us to explicitly define client intents
 const { Client, GatewayIntentBits, Message } = require('discord.js') // To access discord library
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildMembers] })
 
-// const  objectSchema = new mongoose.Schema({
-//     name: String,
-//     list: Array,
-//     responding: Boolean
-// })
+const  objectSchema = new mongoose.Schema({
+    name: String,
+    list: Array,
+    responding: Boolean
+})
 
-// const objectModel = mongoose.model('Object', objectSchema)
+const objectModel = mongoose.model('user', objectSchema)
 function findUser(username) {
     return botItems.find(userBot => userBot.name === username)
 }
@@ -90,13 +90,13 @@ client.on('messageCreate', async msg => {
     if (!userBot) {
         addUser(msg.author.username)
         userBot = findUser(msg.author.username)
-        // objectModel.insertMany(botItems)
-        //     .then(() => {
-        //         console.log('Object inserted successfully')
-        //     })
-        //     .catch((error) => {
-        //         console.log('Error inserting objects: ', error)
-        //     })
+        objectModel.insertMany(botItems)
+            .then(() => {
+                console.log('Object inserted successfully')
+            })
+            .catch((error) => {
+                console.log('Error inserting objects: ', error)
+            })
     }
 
     if (msg.content.startsWith('responding')) {
