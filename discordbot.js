@@ -19,6 +19,10 @@ const  objectSchema = new mongoose.Schema({
 })
 
 const objectModel = mongoose.model('user', objectSchema)
+
+var typeOfRes = ""
+var numType = -1
+
 function findUser(username) {
     return botItems.find(userBot => userBot.name === username)
 }
@@ -27,7 +31,7 @@ function addUser(username) {
     let userBot = {
         name: username,
         joke: ['ding dong'],
-        quote: ['helle'],
+        quote: ['helle', 'hi', 'me'],
         fact: ['hi'],
         responding: true
     }
@@ -39,13 +43,44 @@ function dateTime(msg) {
     msg.reply(`The date is ${dateTimeObject.toDateString()} and the time is ${dateTimeObject.toTimeString()}`)
 }
 
-function list(msg, userBot) {
+function list(msg, userBot, typeStr) {
     var str = ""
-    userBot.list.forEach((element) => {
-        str += element + ", "
-    })
+    if (typeStr === 'joke') {
+        userBot.joke.forEach((element) => {
+            str += element + ", "
+        })
+    }
+    else if (typeStr === 'quote') {
+        userBot.quote.forEach((element) => {
+            str += element + ", "
+        })
+    }
+    else if (typeStr === 'fact') {
+        userBot.fact.forEach((element) => {
+            str += element + ", "
+        })
+    }
     str = str.slice(0, str.length- 2)
     msg.reply(str)
+}
+
+function addToArray(msg, userBot, numType, typeOfRes) {
+    if (numType === -1) {
+        msg.reply('You need me to have a joke, quote, or fact said to you')
+    }
+    if (numType === 1) {
+        userBot.joke.push(typeOfRes)
+        msg.reply('Added joke to the list successfully')
+
+    }
+    else if (numType === 2) {
+        userBot.quote.push(typeOfRes)
+        msg.reply('Added quote to the list successfully')
+    }
+    else if (numType === 3) {
+        userBot.fact.push(typeOfRes)
+        msg.reply('Added fact to the list successfully')
+    }
 }
 
 function apiResponses(msg, typeStr) {
@@ -61,12 +96,15 @@ function apiResponses(msg, typeStr) {
         else {
             var json = JSON.parse(body)
             if (typeStr === 'jokes') {
+                typeOfRes = json[0].joke
                 msg.reply(json[0].joke)
             }
             else if (typeStr === 'facts') {
+                typeOfRes = json[0].fact
                 msg.reply(json[0].fact)
             }
             else if (typeStr === 'quotes') {
+                typeOfRes = json[0].quote + ' - ' + json[0].author
                 msg.reply(json[0].quote + ' - ' + json[0].author)
             }
         }
@@ -79,9 +117,9 @@ function apiResponses(msg, typeStr) {
 let botItems = [
     {
         name: 'Shr_24',
-        joke: ['hehehehe'],
-        quote: [],
-        fact: [],
+        joke: ['hehehehe', 'asdasd'],
+        quote: ['once was a...', 'aishdasd'],
+        fact: ['hydro 1', 'adad'],
         responding: true
     }
 ]
@@ -125,16 +163,28 @@ client.on('messageCreate', async msg => {
             dateTime(msg)
          }
         else if (msg.content.toLowerCase() === 'joke') {
+            numType = 1
             apiResponses(msg, 'jokes')
         }
         else if (msg.content.toLowerCase() === 'fact') {
+            numType = 3
             apiResponses(msg, 'facts')
         }
         else if (msg.content === 'quote') {
+            numType = 2
             apiResponses(msg, 'quotes')
         }
-        else if (msg.content.toLowerCase() === 'list') {
-           list(msg, userBot)
+        else if (msg.content.toLowerCase() === 'jokes') {
+           list(msg, userBot, 'joke')
+        }
+        else if (msg.content.toLowerCase() === 'quotes') {
+            list(msg, userBot, 'quote')
+        }
+        else if (msg.content.toLowerCase() === 'facts') {
+            list(msg, userBot, 'fact')
+        }
+        else if (msg.content.toLowerCase() === 'add') {
+            addToArray(msg, userBot, numType, typeOfRes)
         }
     }
 })
