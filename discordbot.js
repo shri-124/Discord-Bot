@@ -1,14 +1,14 @@
-// Initialize dotenv
-require('dotenv').config()
+require('dotenv').config() // Initialize dotenv
 const request = require('request') // To access api-ninjas
-
-// Using mongoose to add Schema into MongoDB
-const mongoose = require('mongoose')
-mongoose.connect(process.env.DATABASE_URI, { useNewUrlParser: true, useUnifiedTopology: true });
-
-// Discord.js versions ^14.13 require us to explicitly define client intents
+const mongoose = require('mongoose') // Using mongoose to add Schema into MongoDB
 const { Client, GatewayIntentBits, Message } = require('discord.js') // To access discord library
-const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildMembers] })
+const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent/*, GatewayIntentBits.GuildMembers*/] })// Discord.js versions ^14.13 require us to explicitly define client intents
+
+// Global variables
+var typeOfRes = ""
+var numType = -1
+let botItems = []
+
 
 const  objectSchema = new mongoose.Schema({
     name: String,
@@ -19,9 +19,26 @@ const  objectSchema = new mongoose.Schema({
 })
 
 const objectModel = mongoose.model('user', objectSchema)
+async function retreiveAndDeleteDocuments() {
+    try {
+      await mongoose.connect(process.env.DATABASE_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+      //const YourModel = mongoose.model('user', objectSchema);
+      //var documents = await YourModel.find({});
+      var documents = await objectModel.find({})
+      console.log('Retrieved documents:', documents)
+      botItems = documents
+      console.log('bot array: ', botItems)
+      //documents = await YourModel.deleteMany({})
+      documents = await objectModel.deleteMany({})
+      console.log('Documents after deletion: ', documents)
 
-var typeOfRes = ""
-var numType = -1
+
+      //mongoose.disconnect();
+    } catch (err) {
+      console.error('Error:', err);
+    }
+}
+
 
 function findUser(username) {
     return botItems.find(userBot => userBot.name === username)
@@ -30,9 +47,9 @@ function findUser(username) {
 function addUser(username) {
     let userBot = {
         name: username,
-        joke: ['ding dong'],
-        quote: ['helle', 'hi', 'me'],
-        fact: ['hi'],
+        joke: [],
+        quote: [],
+        fact: [],
         responding: true
     }
     botItems.push(userBot)
@@ -111,86 +128,87 @@ function apiResponses(msg, typeStr) {
     });
 }
 
-// for each user have their own list of botItems
-// if a new person joins the server it will add them to the array
-//make bot disable or enable
-let botItems = [
-    {
-        name: 'Shr_24',
-        joke: ['hehehehe', 'asdasd'],
-        quote: ['once was a...', 'aishdasd'],
-        fact: ['hydro 1', 'adad'],
-        responding: true
-    }
-]
+function clientApp() {
+    client.on('ready', () => {
+        console.log(`Logged in as ${client.user.tag}!`)
+        retreiveAndDeleteDocuments()
+    })
 
 
-client.on('ready', () => {
-    console.log(`Logged in as ${client.user.tag}!`)
-})
+    client.on('messageCreate', async msg => {
+        let userBot = findUser(msg.author.username)
+        if (!userBot) {
+            addUser(msg.author.username)
+            userBot = findUser(msg.author.username)
+        }
 
-client.on('messageCreate', async msg => {
-    let userBot = findUser(msg.author.username)
-    if (!userBot) {
-        addUser(msg.author.username)
-        userBot = findUser(msg.author.username)
-        objectModel.insertMany(botItems)
-            .then(() => {
-                console.log('Object inserted successfully')
-            })
-            .catch((error) => {
-                console.log('Error inserting objects: ', error)
-            })
-    }
+        if (msg.content.startsWith('responding')) {
+            value = msg.content.split('responding ')[1]
+            if (value.toLowerCase() === 'true') {
+                userBot.responding = true
+                msg.reply(`bot is open to taking responses for ${msg.author.username}`)
+            }
+            else if (value.toLowerCase() === 'false') {
+                userBot.responding = false
+                msg.reply(`${client.user} will no longer be responding`)
+            }
+        }
 
-    if (msg.content.startsWith('responding')) {
-        value = msg.content.split('responding ')[1]
-        if (value.toLowerCase() === 'true') {
-            userBot.responding = true
-            msg.reply(`bot is open to taking responses for ${msg.author.username}`)
+        if (userBot.responding) {
+            if (msg.content.toLowerCase() === 'hello') {
+                msg.reply(`Hello ${msg.author.username}, how are you doing?`)
+            }
+            else if (msg.content.toLowerCase() === 'time') {
+                dateTime(msg)
+             }
+            else if (msg.content.toLowerCase() === 'joke') {
+                numType = 1
+                apiResponses(msg, 'jokes')
+            }
+            else if (msg.content.toLowerCase() === 'fact') {
+                numType = 3
+                apiResponses(msg, 'facts')
+            }
+            else if (msg.content === 'quote') {
+                numType = 2
+                apiResponses(msg, 'quotes')
+            }
+            else if (msg.content.toLowerCase() === 'jokes') {
+               list(msg, userBot, 'joke')
+            }
+            else if (msg.content.toLowerCase() === 'quotes') {
+                list(msg, userBot, 'quote')
+            }
+            else if (msg.content.toLowerCase() === 'facts') {
+                list(msg, userBot, 'fact')
+            }
+            else if (msg.content.toLowerCase() === 'add') {
+                addToArray(msg, userBot, numType, typeOfRes)
+            }
         }
-        else if (value.toLowerCase() === 'false') {
-            userBot.responding = false
-            msg.reply(`${client.user} will no longer be responding`)
-        }
-    }
+    })
 
-    if (userBot.responding) {
-        if (msg.content.toLowerCase() === 'hello') {
-            msg.reply(`Hello ${msg.author.username}, how are you doing?`)
-        }
-        else if (msg.content.toLowerCase() === 'time') {
-            dateTime(msg)
-         }
-        else if (msg.content.toLowerCase() === 'joke') {
-            numType = 1
-            apiResponses(msg, 'jokes')
-        }
-        else if (msg.content.toLowerCase() === 'fact') {
-            numType = 3
-            apiResponses(msg, 'facts')
-        }
-        else if (msg.content === 'quote') {
-            numType = 2
-            apiResponses(msg, 'quotes')
-        }
-        else if (msg.content.toLowerCase() === 'jokes') {
-           list(msg, userBot, 'joke')
-        }
-        else if (msg.content.toLowerCase() === 'quotes') {
-            list(msg, userBot, 'quote')
-        }
-        else if (msg.content.toLowerCase() === 'facts') {
-            list(msg, userBot, 'fact')
-        }
-        else if (msg.content.toLowerCase() === 'add') {
-            addToArray(msg, userBot, numType, typeOfRes)
-        }
-    }
-})
+    // Log in our bot
+    client.login(process.env.DISCORD_BOT_TOKEN);
+
+}
 
 
-// Log in our bot
-client.login(process.env.DISCORD_BOT_TOKEN);
+
+clientApp()
+process.on('SIGINT', () => {
+    console.log(`About to exit with code:`);
+    objectModel.insertMany(botItems)
+        .then(() =>{
+            console.log('objects inserted correctly')
+            process.exit(0)
+        })
+        .catch((error) => {
+            console.log('Objects could not be inserted', error)
+            process.exit(0)
+        })
+});
+
+
 
 
