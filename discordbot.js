@@ -1,6 +1,7 @@
 require('dotenv').config() // Initialize dotenv
 const request = require('request') // To access api-ninjas
 const mongoose = require('mongoose') // Using mongoose to add Schema into MongoDB
+const dateTime = require('./date.js')
 const apiResponses = require('./quoteAPI.js')
 const { Client, GatewayIntentBits, Message } = require('discord.js') // To access discord library
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent/*, GatewayIntentBits.GuildMembers*/] })// Discord.js versions ^14.13 require us to explicitly define client intents
@@ -61,11 +62,6 @@ function addUser(username) {
     botItems.push(userBot)
 }
 
-function dateTime(msg) {
-    const dateTimeObject = new Date()
-    msg.reply(`The date is ${dateTimeObject.toDateString()} and the time is ${dateTimeObject.toTimeString()}`)
-}
-
 function list(msg, userBot, typeStr) {
     var str = ""
     if (typeStr === 'joke') {
@@ -105,34 +101,6 @@ function addToArray(msg, userBot, numType, botObject) {
         msg.reply('Added fact to the list successfully')
     }
 }
-
-// function apiResponses(msg, typeStr) {
-//     var limit = 1
-//     request.get({
-//         url: `https://api.api-ninjas.com/v1/${typeStr}?limit=` + limit,
-//         headers: {
-//             'X-Api-Key': process.env.API_NINJAS_TOKEN
-//         },
-//     }, function(error, response, body) {
-//         if(error) return console.error('Request failed:', error)
-//         else if(response.statusCode != 200) return console.error('Error:', response.statusCode, body.toString('utf8'))
-//         else {
-//             var json = JSON.parse(body)
-//             if (typeStr === 'jokes') {
-//                 typeOfRes = json[0].joke
-//                 msg.reply(json[0].joke)
-//             }
-//             else if (typeStr === 'facts') {
-//                 typeOfRes = json[0].fact
-//                 msg.reply(json[0].fact)
-//             }
-//             else if (typeStr === 'quotes') {
-//                 typeOfRes = json[0].quote + ' - ' + json[0].author
-//                 msg.reply(json[0].quote + ' - ' + json[0].author)
-//             }
-//         }
-//     });
-// }
 
 function clientApp() {
     client.on('ready', () => {
