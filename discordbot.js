@@ -5,6 +5,8 @@ const dateTime = require('./date.js')
 const { findUser, addUser } = require('./userManagement.js')
 const { list, addToArray } = require('./usersArrays.js')
 const apiResponses = require('./quoteAPI.js')
+const { objectModel, retreiveAndDeleteDocuments } = require('./mongoDBConfig.js')
+const onOffline = require('./exit.js')
 const { Client, GatewayIntentBits, Message } = require('discord.js') // To access discord library
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent/*, GatewayIntentBits.GuildMembers*/] })// Discord.js versions ^14.13 require us to explicitly define client intents
 
@@ -16,36 +18,7 @@ var botObject = {
 }
 
 
-const  objectSchema = new mongoose.Schema({
-    name: String,
-    joke: Array,
-    quote: Array,
-    fact: Array,
-    responding: Boolean
-})
-
-const objectModel = mongoose.model('user', objectSchema)
-async function retreiveAndDeleteDocuments() {
-    try {
-      await mongoose.connect(process.env.DATABASE_URI, { useNewUrlParser: true, useUnifiedTopology: true })
-      //const YourModel = mongoose.model('user', objectSchema);
-      //var documents = await YourModel.find({});
-      var documents = await objectModel.find({})
-      console.log('Retrieved documents:', documents)
-      botObject.botItems = documents
-      console.log('bot array: ', botObject.botItems)
-      //documents = await YourModel.deleteMany({})
-      documents = await objectModel.deleteMany({})
-      console.log('Documents after deletion: ', documents)
-
-
-      //mongoose.disconnect();
-    } catch (err) {
-      console.error('Error:', err);
-    }
-}
-
-
+retreiveAndDeleteDocuments(botObject)
 function clientApp() {
     client.on('ready', () => {
         console.log(`Logged in as ${client.user.tag}!`)
@@ -113,18 +86,7 @@ function clientApp() {
 
 
 clientApp()
-process.on('SIGINT', () => {
-    console.log(`About to exit with code:`);
-    objectModel.insertMany(botObject.botItems)
-        .then(() =>{
-            console.log('objects inserted correctly')
-            process.exit(0)
-        })
-        .catch((error) => {
-            console.log('Objects could not be inserted', error)
-            process.exit(0)
-        })
-});
+onOffline(botObject)
 
 
 
