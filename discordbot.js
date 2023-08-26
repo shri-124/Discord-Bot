@@ -3,17 +3,15 @@ const request = require('request') // To access api-ninjas
 const mongoose = require('mongoose') // Using mongoose to add Schema into MongoDB
 const dateTime = require('./date.js')
 const { findUser, addUser } = require('./userManagement.js')
+const { list, addToArray } = require('./usersArrays.js')
 const apiResponses = require('./quoteAPI.js')
 const { Client, GatewayIntentBits, Message } = require('discord.js') // To access discord library
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent/*, GatewayIntentBits.GuildMembers*/] })// Discord.js versions ^14.13 require us to explicitly define client intents
 
-// Global variables
-var numType = -1
-//let botItems = []
-
+// Global bot object
 var botObject = {
     typeOfRes: "",
-    // numType: -1,
+    numType: -1,
     botItems: []
 }
 
@@ -47,45 +45,6 @@ async function retreiveAndDeleteDocuments() {
     }
 }
 
-function list(msg, userBot, typeStr) {
-    var str = ""
-    if (typeStr === 'joke') {
-        userBot.joke.forEach((element) => {
-            str += element + ", "
-        })
-    }
-    else if (typeStr === 'quote') {
-        userBot.quote.forEach((element) => {
-            str += element + ", "
-        })
-    }
-    else if (typeStr === 'fact') {
-        userBot.fact.forEach((element) => {
-            str += element + ", "
-        })
-    }
-    str = str.slice(0, str.length- 2)
-    msg.reply(str)
-}
-
-function addToArray(msg, userBot, numType, botObject) {
-    if (numType === -1) {
-        msg.reply('You need me to have a joke, quote, or fact said to you')
-    }
-    if (numType === 1) {
-        userBot.joke.push(botObject.typeOfRes)
-        msg.reply('Added joke to the list successfully')
-
-    }
-    else if (numType === 2) {
-        userBot.quote.push(botObject.typeOfRes)
-        msg.reply('Added quote to the list successfully')
-    }
-    else if (numType === 3) {
-        userBot.fact.push(botObject.typeOfRes)
-        msg.reply('Added fact to the list successfully')
-    }
-}
 
 function clientApp() {
     client.on('ready', () => {
@@ -121,15 +80,15 @@ function clientApp() {
                 dateTime(msg)
              }
             else if (msg.content.toLowerCase() === 'joke') {
-                numType = 1
+                botObject.numType = 1
                 apiResponses(msg, 'jokes', botObject)
             }
             else if (msg.content.toLowerCase() === 'fact') {
-                numType = 3
+                botObject.numType = 3
                 apiResponses(msg, 'facts', botObject)
             }
             else if (msg.content === 'quote') {
-                numType = 2
+                botObject.numType = 2
                 apiResponses(msg, 'quotes', botObject)
             }
             else if (msg.content.toLowerCase() === 'jokes') {
@@ -142,14 +101,13 @@ function clientApp() {
                 list(msg, userBot, 'fact')
             }
             else if (msg.content.toLowerCase() === 'add') {
-                addToArray(msg, userBot, numType, botObject)
+                addToArray(msg, userBot, botObject)
             }
         }
     })
 
     // Log in our bot
     client.login(process.env.DISCORD_BOT_TOKEN);
-
 }
 
 
