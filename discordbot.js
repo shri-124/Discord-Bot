@@ -1,13 +1,19 @@
 require('dotenv').config() // Initialize dotenv
 const request = require('request') // To access api-ninjas
 const mongoose = require('mongoose') // Using mongoose to add Schema into MongoDB
+const apiResponses = require('./quoteAPI.js')
 const { Client, GatewayIntentBits, Message } = require('discord.js') // To access discord library
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent/*, GatewayIntentBits.GuildMembers*/] })// Discord.js versions ^14.13 require us to explicitly define client intents
 
 // Global variables
-var typeOfRes = ""
 var numType = -1
 let botItems = []
+
+var botObject = {
+    typeOfRes: ""
+    // numType: -1,
+    // botItems: []
+}
 
 
 const  objectSchema = new mongoose.Schema({
@@ -81,52 +87,52 @@ function list(msg, userBot, typeStr) {
     msg.reply(str)
 }
 
-function addToArray(msg, userBot, numType, typeOfRes) {
+function addToArray(msg, userBot, numType, botObject) {
     if (numType === -1) {
         msg.reply('You need me to have a joke, quote, or fact said to you')
     }
     if (numType === 1) {
-        userBot.joke.push(typeOfRes)
+        userBot.joke.push(botObject.typeOfRes)
         msg.reply('Added joke to the list successfully')
 
     }
     else if (numType === 2) {
-        userBot.quote.push(typeOfRes)
+        userBot.quote.push(botObject.typeOfRes)
         msg.reply('Added quote to the list successfully')
     }
     else if (numType === 3) {
-        userBot.fact.push(typeOfRes)
+        userBot.fact.push(botObject.typeOfRes)
         msg.reply('Added fact to the list successfully')
     }
 }
 
-function apiResponses(msg, typeStr) {
-    var limit = 1
-    request.get({
-        url: `https://api.api-ninjas.com/v1/${typeStr}?limit=` + limit,
-        headers: {
-            'X-Api-Key': process.env.API_NINJAS_TOKEN
-        },
-    }, function(error, response, body) {
-        if(error) return console.error('Request failed:', error)
-        else if(response.statusCode != 200) return console.error('Error:', response.statusCode, body.toString('utf8'))
-        else {
-            var json = JSON.parse(body)
-            if (typeStr === 'jokes') {
-                typeOfRes = json[0].joke
-                msg.reply(json[0].joke)
-            }
-            else if (typeStr === 'facts') {
-                typeOfRes = json[0].fact
-                msg.reply(json[0].fact)
-            }
-            else if (typeStr === 'quotes') {
-                typeOfRes = json[0].quote + ' - ' + json[0].author
-                msg.reply(json[0].quote + ' - ' + json[0].author)
-            }
-        }
-    });
-}
+// function apiResponses(msg, typeStr) {
+//     var limit = 1
+//     request.get({
+//         url: `https://api.api-ninjas.com/v1/${typeStr}?limit=` + limit,
+//         headers: {
+//             'X-Api-Key': process.env.API_NINJAS_TOKEN
+//         },
+//     }, function(error, response, body) {
+//         if(error) return console.error('Request failed:', error)
+//         else if(response.statusCode != 200) return console.error('Error:', response.statusCode, body.toString('utf8'))
+//         else {
+//             var json = JSON.parse(body)
+//             if (typeStr === 'jokes') {
+//                 typeOfRes = json[0].joke
+//                 msg.reply(json[0].joke)
+//             }
+//             else if (typeStr === 'facts') {
+//                 typeOfRes = json[0].fact
+//                 msg.reply(json[0].fact)
+//             }
+//             else if (typeStr === 'quotes') {
+//                 typeOfRes = json[0].quote + ' - ' + json[0].author
+//                 msg.reply(json[0].quote + ' - ' + json[0].author)
+//             }
+//         }
+//     });
+// }
 
 function clientApp() {
     client.on('ready', () => {
@@ -163,15 +169,15 @@ function clientApp() {
              }
             else if (msg.content.toLowerCase() === 'joke') {
                 numType = 1
-                apiResponses(msg, 'jokes')
+                apiResponses(msg, 'jokes', botObject)
             }
             else if (msg.content.toLowerCase() === 'fact') {
                 numType = 3
-                apiResponses(msg, 'facts')
+                apiResponses(msg, 'facts', botObject)
             }
             else if (msg.content === 'quote') {
                 numType = 2
-                apiResponses(msg, 'quotes')
+                apiResponses(msg, 'quotes', botObject)
             }
             else if (msg.content.toLowerCase() === 'jokes') {
                list(msg, userBot, 'joke')
@@ -183,7 +189,7 @@ function clientApp() {
                 list(msg, userBot, 'fact')
             }
             else if (msg.content.toLowerCase() === 'add') {
-                addToArray(msg, userBot, numType, typeOfRes)
+                addToArray(msg, userBot, numType, botObject)
             }
         }
     })
