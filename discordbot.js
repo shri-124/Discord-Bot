@@ -2,18 +2,19 @@ require('dotenv').config() // Initialize dotenv
 const request = require('request') // To access api-ninjas
 const mongoose = require('mongoose') // Using mongoose to add Schema into MongoDB
 const dateTime = require('./date.js')
+const { findUser, addUser } = require('./userManagement.js')
 const apiResponses = require('./quoteAPI.js')
 const { Client, GatewayIntentBits, Message } = require('discord.js') // To access discord library
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent/*, GatewayIntentBits.GuildMembers*/] })// Discord.js versions ^14.13 require us to explicitly define client intents
 
 // Global variables
 var numType = -1
-let botItems = []
+//let botItems = []
 
 var botObject = {
-    typeOfRes: ""
+    typeOfRes: "",
     // numType: -1,
-    // botItems: []
+    botItems: []
 }
 
 
@@ -33,8 +34,8 @@ async function retreiveAndDeleteDocuments() {
       //var documents = await YourModel.find({});
       var documents = await objectModel.find({})
       console.log('Retrieved documents:', documents)
-      botItems = documents
-      console.log('bot array: ', botItems)
+      botObject.botItems = documents
+      console.log('bot array: ', botObject.botItems)
       //documents = await YourModel.deleteMany({})
       documents = await objectModel.deleteMany({})
       console.log('Documents after deletion: ', documents)
@@ -44,22 +45,6 @@ async function retreiveAndDeleteDocuments() {
     } catch (err) {
       console.error('Error:', err);
     }
-}
-
-
-function findUser(username) {
-    return botItems.find(userBot => userBot.name === username)
-}
-
-function addUser(username) {
-    let userBot = {
-        name: username,
-        joke: [],
-        quote: [],
-        fact: [],
-        responding: true
-    }
-    botItems.push(userBot)
 }
 
 function list(msg, userBot, typeStr) {
@@ -110,10 +95,10 @@ function clientApp() {
 
 
     client.on('messageCreate', async msg => {
-        let userBot = findUser(msg.author.username)
+        let userBot = findUser(msg.author.username, botObject)
         if (!userBot) {
-            addUser(msg.author.username)
-            userBot = findUser(msg.author.username)
+            addUser(msg.author.username, botObject)
+            userBot = findUser(msg.author.username, botObject)
         }
 
         if (msg.content.startsWith('responding')) {
@@ -172,7 +157,7 @@ function clientApp() {
 clientApp()
 process.on('SIGINT', () => {
     console.log(`About to exit with code:`);
-    objectModel.insertMany(botItems)
+    objectModel.insertMany(botObject.botItems)
         .then(() =>{
             console.log('objects inserted correctly')
             process.exit(0)
