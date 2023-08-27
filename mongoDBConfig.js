@@ -12,6 +12,9 @@ const objectModel = mongoose.model('user', objectSchema)
 
 async function retreiveAndDeleteDocuments(botObject) {
     try {
+      if (!botObject) {
+        throw new Error('botObject is undefined')
+      }
       await mongoose.connect(process.env.DATABASE_URI, { useNewUrlParser: true, useUnifiedTopology: true })
       var documents = await objectModel.find({})
       console.log('Retrieved documents:', documents)

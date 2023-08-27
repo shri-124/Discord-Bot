@@ -17,12 +17,10 @@ var botObject = {
 }
 
 
-retreiveAndDeleteDocuments(botObject)
-
 function clientApp() {
     client.on('ready', () => {
         console.log(`Logged in as ${client.user.tag}!`)
-        retreiveAndDeleteDocuments()
+        retreiveAndDeleteDocuments(botObject)
     })
 
 
