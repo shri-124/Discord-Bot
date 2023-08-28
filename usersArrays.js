@@ -16,7 +16,12 @@ function list(msg, userBot, typeStr) {
         })
     }
     str = str.slice(0, str.length- 2)
-    msg.reply(str)
+    if (!str) {
+        msg.reply(`There are no ${typeStr}s you have added`)
+    }
+    else {
+        msg.reply(str)
+    }
 }
 
 
