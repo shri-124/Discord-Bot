@@ -1,12 +1,17 @@
+// Imported packages
 require('dotenv').config() // Initialize dotenv
+const { Client, GatewayIntentBits, Message } = require('discord.js') // To access discord library
+
+// Imported files
 const dateTime = require('./date.js')
-const { findUser, addUser } = require('./userManagement.js')
-const { list, addToArray } = require('./usersArrays.js')
-const apiResponses = require('./quoteAPI.js')
-const { retreiveAndDeleteDocuments } = require('./mongoDBConfig.js')
 const onOffline = require('./exit.js')
 const removeObjects = require('./removeObject.js')
-const { Client, GatewayIntentBits, Message } = require('discord.js') // To access discord library
+const apiResponses = require('./quoteAPI.js')
+const { findUser, addUser } = require('./userManagement.js')
+const { list, addToArray } = require('./usersArrays.js')
+const { retreiveAndDeleteDocuments } = require('./mongoDBConfig.js')
+
+
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent/*, GatewayIntentBits.GuildMembers*/] })// Discord.js versions ^14.13 require us to explicitly define client intents
 
 // Global bot object
